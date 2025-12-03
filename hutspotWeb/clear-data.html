@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Old Data - HutSpot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            color: #ff9800;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+        button:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+        .back-btn {
+            background: #666;
+        }
+        .back-btn:hover {
+            background: #555;
+        }
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            color: #155724;
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Clear Old Booking Data</h1>
+        <p>This will delete all old bookings that don't have payment images. After clearing, you can create fresh bookings with payment proof images.</p>
+        
+        <div class="warning">
+            <strong>⚠️ Warning:</strong> This will permanently delete all existing bookings, payments, and user accounts from your browser's storage.
+        </div>
+
+        <button onclick="clearOldData()">Clear All Data</button>
+        <button class="back-btn" onclick="location.href='index.html'">Go Back</button>
+
+        <div class="success" id="successMsg">
+            <strong>✅ Success!</strong><br>
+            All old data has been cleared.<br>
+            <button onclick="location.href='index.html'" style="margin-top: 15px;">Go to Main Site</button>
+        </div>
+    </div>
+
+    <script>
+        function clearOldData() {
+            if (confirm('Are you sure you want to delete ALL data? This cannot be undone.')) {
+                // Clear all localStorage
+                localStorage.clear();
+                
+                // Show success message
+                document.querySelector('.warning').style.display = 'none';
+                document.querySelector('button').style.display = 'none';
+                document.querySelector('.back-btn').style.display = 'none';
+                document.getElementById('successMsg').style.display = 'block';
+                
+                console.log('All data cleared successfully!');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking System Test - HutSpot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .status.success {
+            background: #4caf50;
+            color: white;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .info {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-left: 4px solid #667eea;
+        }
+        .info strong {
+            color: #333;
+            display: inline-block;
+            width: 150px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #da190b;
+        }
+        button.success {
+            background: #4caf50;
+        }
+        button.success:hover {
+            background: #45a049;
+        }
+        .navigation {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge.pending {
+            background: #ff9800;
+            color: white;
+        }
+        .badge.confirmed {
+            background: #4caf50;
+            color: white;
+        }
+        .badge.rejected {
+            background: #f44336;
+            color: white;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Booking System Integration Test</h1>
+        <p class="status success">✅ System Connected</p>
+        
+        <div class="section">
+            <h2>📊 System Status</h2>
+            <div class="info">
+                <strong>Total Bookings:</strong>
+                <span id="totalBookings">0</span>
+            </div>
+            <div class="info">
+                <strong>Pending Bookings:</strong>
+                <span id="pendingBookings">0</span>
+            </div>
+            <div class="info">
+                <strong>Confirmed Bookings:</strong>
+                <span id="confirmedBookings">0</span>
+            </div>
+            <div class="info">
+                <strong>Total Payments:</strong>
+                <span id="totalPayments">0</span>
+            </div>
+            <div class="info">
+                <strong>Reserved Dates:</strong>
+                <span id="reservedDates">None</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Recent Bookings</h2>
+            <table id="bookingsTable">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer</th>
+                        <th>Event Type</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingsTableBody">
+                    <tr>
+                        <td colspan="6" class="empty">No bookings yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test Actions</h2>
+            <button onclick="loadData()">🔄 Refresh Data</button>
+            <button class="success" onclick="createTestBooking()">➕ Create Test Booking</button>
+            <button class="danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+        </div>
+
+        <div class="navigation">
+            <button onclick="window.open('index.html', '_blank')">📱 Open Customer Site</button>
+            <button onclick="window.open('admin.html', '_blank')">👨‍💼 Open Admin Panel</button>
+        </div>
+    </div>
+
+    <script>
+        // Load and display data
+        function loadData() {
+            try {
+                const bookings = JSON.parse(localStorage.getItem('hutspot_bookings') || '[]');
+                const payments = JSON.parse(localStorage.getItem('hutspot_payments') || '[]');
+
+                // Update stats
+                document.getElementById('totalBookings').textContent = bookings.length;
+                document.getElementById('pendingBookings').textContent = 
+                    bookings.filter(b => b.status === 'pending').length;
+                document.getElementById('confirmedBookings').textContent = 
+                    bookings.filter(b => b.status === 'confirmed').length;
+                document.getElementById('totalPayments').textContent = payments.length;
+                
+                const reservedDates = bookings
+                    .filter(b => b.status === 'confirmed')
+                    .map(b => b.eventDate)
+                    .join(', ') || 'None';
+                document.getElementById('reservedDates').textContent = reservedDates;
+
+                // Update table
+                const tableBody = document.getElementById('bookingsTableBody');
+                if (bookings.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="empty">No bookings yet. Click "Create Test Booking" to add one.</td></tr>';
+                } else {
+                    tableBody.innerHTML = bookings.slice(-10).reverse().map(b => `
+                        <tr>
+                            <td><strong>${b.id}</strong></td>
+                            <td>${b.customerName}<br><small>${b.email}</small></td>
+                            <td>${b.eventType.toUpperCase()}</td>
+                            <td>${b.eventDate}</td>
+                            <td>₱${b.totalAmount.toLocaleString()}</td>
+                            <td><span class="badge ${b.status}">${b.status}</span></td>
+                        </tr>
+                    `).join('');
+                }
+
+                console.log('✅ Data loaded successfully');
+                console.log('Bookings:', bookings);
+                console.log('Payments:', payments);
+            } catch (error) {
+                console.error('❌ Error loading data:', error);
+                alert('Error loading data. Check console for details.');
+            }
+        }
+
+        // Create test booking
+        function createTestBooking() {
+            const bookingId = 'BK' + Date.now();
+            const paymentId = 'PAY' + Date.now();
+
+            const testBooking = {
+                id: bookingId,
+                customerName: 'Test Customer ' + Math.floor(Math.random() * 1000),
+                email: 'test' + Math.floor(Math.random() * 1000) + '@example.com',
+                phone: '09123456789',
+                eventType: ['birthday', 'wedding', 'corporate'][Math.floor(Math.random() * 3)],
+                eventDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                eventTime: '14:00',
+                venueId: 'main-hall',
+                venueName: 'Main Hall',
+                numberOfGuests: Math.floor(Math.random() * 200) + 50,
+                specialRequest: 'Test booking - please review',
+                services: ['Catering Service', 'Photography Package'],
+                servicesDetails: [],
+                promoCode: '',
+                totalAmount: Math.floor(Math.random() * 20000) + 10000,
+                downPayment: 5000,
+                balance: 5000,
+                status: 'pending',
+                paymentProof: 'test_receipt.jpg',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            const testPayment = {
+                id: paymentId,
+                bookingId: bookingId,
+                amount: testBooking.totalAmount,
+                downPayment: testBooking.downPayment,
+                remainingBalance: testBooking.balance,
+                paymentMethod: 'GCash',
+                paymentProof: 'test_receipt.jpg',
+                status: 'pending',
+                paymentDate: null,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                const bookings = JSON.parse(localStorage.getItem('hutspot_bookings') || '[]');
+                const payments = JSON.parse(localStorage.getItem('hutspot_payments') || '[]');
+                
+                bookings.push(testBooking);
+                payments.push(testPayment);
+                
+                localStorage.setItem('hutspot_bookings', JSON.stringify(bookings));
+                localStorage.setItem('hutspot_payments', JSON.stringify(payments));
+
+                alert('✅ Test booking created successfully!\n\nBooking ID: ' + bookingId + '\nCustomer: ' + testBooking.customerName);
+                loadData();
+            } catch (error) {
+                console.error('❌ Error creating test booking:', error);
+                alert('Error creating test booking. Check console for details.');
+            }
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('⚠️ Are you sure you want to clear ALL bookings and payments?\n\nThis action cannot be undone!')) {
+                localStorage.removeItem('hutspot_bookings');
+                localStorage.removeItem('hutspot_payments');
+                alert('✅ All data cleared successfully!');
+                loadData();
+            }
+        }
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', loadData);
+
+        // Auto-refresh every 5 seconds
+        setInterval(loadData, 5000);
+    </script>
+</body>
+</html>

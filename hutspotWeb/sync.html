@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HutSpot - Sync Data to Database</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { color: #ff9800; margin-bottom: 10px; }
+        p.subtitle { color: #666; margin-bottom: 30px; }
+        .section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .section h3 { color: #333; margin-bottom: 15px; }
+        .count { font-size: 2rem; font-weight: bold; color: #ff9800; }
+        .btn {
+            background: #ff9800;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        .btn:hover { background: #f57c00; transform: translateY(-2px); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-danger { background: #f44336; }
+        .btn-danger:hover { background: #d32f2f; }
+        .btn-success { background: #4caf50; }
+        .btn-success:hover { background: #388e3c; }
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry { margin-bottom: 5px; }
+        .log-success { color: #4caf50; }
+        .log-error { color: #f44336; }
+        .log-info { color: #2196f3; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        .stat-box { text-align: center; padding: 15px; background: white; border-radius: 8px; }
+        .stat-box small { color: #999; }
+        .actions { margin-top: 20px; text-align: center; }
+        a { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 HutSpot Data Sync</h1>
+        <p class="subtitle">Migrate localStorage data to MySQL Database</p>
+
+        <div class="section">
+            <h3>📊 Current localStorage Data</h3>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="count" id="bookingCount">0</div>
+                    <small>Bookings</small>
+                </div>
+                <div class="stat-box">
+                    <div class="count" id="paymentCount">0</div>
+                    <small>Payments</small>
+                </div>
+                <div class="stat-box">
+                    <div class="count" id="userCount">0</div>
+                    <small>Users</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🔧 Actions</h3>
+            <div class="actions">
+                <button class="btn" onclick="testConnection()">🔌 Test Database Connection</button>
+                <button class="btn btn-success" onclick="syncToDatabase()">📤 Sync to Database</button>
+                <button class="btn btn-danger" onclick="clearLocalStorage()">🗑️ Clear localStorage</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📋 Sync Log</h3>
+            <div class="log" id="log">
+                <div class="log-entry log-info">Ready to sync. Click "Sync to Database" to start.</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🔗 Quick Links</h3>
+            <p>
+                <a href="http://localhost/phpmyadmin" target="_blank">📂 Open phpMyAdmin</a> | 
+                <a href="api/test.php" target="_blank">🧪 Test API</a> | 
+                <a href="index.html">🏠 Back to Website</a> |
+                <a href="admin.html">👤 Admin Dashboard</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Load counts on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCounts();
+        });
+
+        function updateCounts() {
+            const bookings = JSON.parse(localStorage.getItem('hutspot_bookings') || '[]');
+            const payments = JSON.parse(localStorage.getItem('hutspot_payments') || '[]');
+            const user = localStorage.getItem('hutspot_current_user');
+            
+            document.getElementById('bookingCount').textContent = bookings.length;
+            document.getElementById('paymentCount').textContent = payments.length;
+            document.getElementById('userCount').textContent = user ? '1' : '0';
+        }
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function testConnection() {
+            log('Testing database connection...', 'info');
+            try {
+                const response = await fetch('api/bookings.php');
+                if (response.ok) {
+                    log('✅ Database connection successful!', 'success');
+                    const data = await response.json();
+                    log(`Found ${data.length} bookings in database`, 'info');
+                } else {
+                    log('❌ Database connection failed. Check if MySQL is running.', 'error');
+                }
+            } catch (error) {
+                log('❌ Error: ' + error.message, 'error');
+                log('Make sure Apache and MySQL are running in XAMPP', 'error');
+            }
+        }
+
+        async function syncToDatabase() {
+            log('Starting sync to database...', 'info');
+            
+            // Sync Bookings
+            const bookings = JSON.parse(localStorage.getItem('hutspot_bookings') || '[]');
+            log(`Found ${bookings.length} bookings to sync`, 'info');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const booking of bookings) {
+                try {
+                    const response = await fetch('api/bookings.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: booking.id,
+                            customerName: booking.customerName,
+                            email: booking.email,
+                            phone: booking.phone,
+                            eventPackage: booking.eventPackage,
+                            packageName: booking.packageName,
+                            eventType: booking.eventType,
+                            eventDate: booking.eventDate,
+                            eventTime: booking.eventTime,
+                            venueName: booking.venueName,
+                            numberOfGuests: booking.numberOfGuests,
+                            specialRequest: booking.specialRequest,
+                            totalAmount: booking.totalAmount,
+                            downPayment: booking.downPayment,
+                            balance: booking.balance,
+                            paymentProof: booking.paymentProof,
+                            paymentProofImage: booking.paymentProofImage
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        log(`✅ Booking ${booking.id} synced`, 'success');
+                        successCount++;
+                    } else {
+                        const err = await response.json();
+                        log(`⚠️ Booking ${booking.id}: ${err.error || 'Failed'}`, 'error');
+                        errorCount++;
+                    }
+                } catch (error) {
+                    log(`❌ Error syncing ${booking.id}: ${error.message}`, 'error');
+                    errorCount++;
+                }
+            }
+            
+            // Sync Payments
+            const payments = JSON.parse(localStorage.getItem('hutspot_payments') || '[]');
+            log(`Found ${payments.length} payments to sync`, 'info');
+            
+            for (const payment of payments) {
+                try {
+                    const response = await fetch('api/payments.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: payment.id,
+                            bookingId: payment.bookingId,
+                            amount: payment.amount,
+                            downPayment: payment.downPayment,
+                            remainingBalance: payment.remainingBalance,
+                            paymentMethod: payment.paymentMethod,
+                            paymentProof: payment.paymentProof,
+                            paymentProofImage: payment.paymentProofImage
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        log(`✅ Payment ${payment.id} synced`, 'success');
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    log(`❌ Error syncing payment: ${error.message}`, 'error');
+                    errorCount++;
+                }
+            }
+            
+            // Sync User
+            const user = JSON.parse(localStorage.getItem('hutspot_current_user') || 'null');
+            if (user) {
+                try {
+                    const response = await fetch('api/auth.php?action=register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            email: user.email,
+                            mobile: user.mobile,
+                            password: 'password123' // Default password
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        log(`✅ User ${user.email} synced`, 'success');
+                        successCount++;
+                    } else {
+                        const err = await response.json();
+                        log(`⚠️ User: ${err.error || 'May already exist'}`, 'info');
+                    }
+                } catch (error) {
+                    log(`User sync: ${error.message}`, 'info');
+                }
+            }
+            
+            log('─────────────────────────────', 'info');
+            log(`Sync complete! Success: ${successCount}, Errors: ${errorCount}`, successCount > 0 ? 'success' : 'info');
+            log('Open phpMyAdmin to view the data!', 'info');
+        }
+
+        function clearLocalStorage() {
+            if (confirm('Are you sure you want to clear all localStorage data? This cannot be undone!')) {
+                localStorage.removeItem('hutspot_bookings');
+                localStorage.removeItem('hutspot_payments');
+                localStorage.removeItem('hutspot_current_user');
+                localStorage.removeItem('hutspot_user_logged_in');
+                log('🗑️ localStorage cleared!', 'success');
+                updateCounts();
+            }
+        }
+    </script>
+</body>
+</html>

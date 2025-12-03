@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>HutSpot - EBMS</title>
+        <link rel="icon" href="image/hutspot.png" type="image/x-icon">
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="booking.css">
+        <script src="script.js" defer></script>
+        <script src="booking.js" defer></script>
+    </head>
+</html>
+<body>
+    <!---Header-->
+    <header>
+    <nav class="navbar">
+        <!-- Logo -->
+        <div class="logo">
+            <img src="image/hutspot.png" alt="Logo">
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="nav-links">
+            <a href="#home">Home</a>
+            <a href="#services">Services</a>
+            <a href="#packages">Packages</a>
+            <a href="#about">About</a>
+            <a href="#calendar">Calendar</a>
+            <a href="#contact" onclick="openContactModal()">Contact Us</a>
+            <button onclick="openAdminLoginModal(); return false;" class="login-btn">Admin</button>
+            <button id="accountLink" onclick="openUserAuthModal(); return false;" class="login-btn">Login</button>
+        </div>
+
+        <!-- Burger Menu -->
+        <div class="burger-menu" onclick="toggleMobileNav()">
+            <div class="burger-bar"></div>
+            <div class="burger-bar"></div>
+            <div class="burger-bar"></div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Menu -->
+    <div class="mobile-nav" id="mobileNav">
+        <button class="mobile-nav-close" onclick="toggleMobileNav()">×</button>
+        <a href="#home" onclick="toggleMobileNav()">Home</a>
+        <a href="#services" onclick="toggleMobileNav()">Services</a>
+        <a href="#packages" onclick="toggleMobileNav()">Packages</a>
+        <a href="#about" onclick="toggleMobileNav()">About</a>
+        <a href="#calendar" onclick="toggleMobileNav()">Calendar</a>
+        <a href="#contact" onclick="openContactModal(); toggleMobileNav();">Contact Us</a>
+        <a href="#" onclick="openAdminLoginModal(); toggleMobileNav();" class="login-btn">Admin</a>
+        <a href="#" onclick="openUserAuthModal(); toggleMobileNav();" class="login-btn">Login</a>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Hut Spot Food House and Event Place</h1>
+            <p>Discover the best events Place in Labo and reserve your spot in seconds.</p>
+            <a href="#" class="btn btn-primary" onclick="openBookingModal()">Book Now</a>
+            <a href="#events" class="btn btn-outline">Log in/Sign up</a>
+        </div>
+    </div>
+</header>
+
+<!-- Book Now Modal - Step-by-Step Booking Form -->
+<div id="bookingModal" class="modal">
+    <div class="modal-overlay">
+        <div class="booking-modal-box">
+            <span class="close" onclick="closeBookingModal()">&times;</span>
+            <!-- Progress Steps -->
+            <div class="booking-progress">
+                <div class="progress-step active" id="step1-progress">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Event Details</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" id="step2-progress">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Add-ons</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" id="step3-progress">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Review & Pay</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Event Details -->
+            <div id="bookingStep1" class="booking-step active">
+                <h2>Step 1: Event Details</h2>
+                
+                <div class="form-group">
+                    <label>Select Package *</label>
+                    <select id="eventPackage" onchange="updatePackagePrice()">
+                        <option value="">Select a Package</option>
+                        <optgroup label="Food + Venue Packages">
+                            <option value="package-1" data-price="400" data-minpax="50">Package 1 - ₱400/head (50 pax min)</option>
+                            <option value="package-2" data-price="450" data-minpax="50">Package 2 - ₱450/head (50 pax min)</option>
+                            <option value="package-3" data-price="500" data-minpax="60">Package 3 - ₱500/head (60 pax min)</option>
+                        </optgroup>
+                        <optgroup label="Venue Only Packages">
+                            <option value="package-4" data-price="16000" data-basepax="100">Package 4 - ₱16,000 (Venue Only, 100 pax)</option>
+                            <option value="package-5" data-price="19000" data-basepax="100">Package 5 - ₱19,000 (Venue + Single Room)</option>
+                            <option value="package-6" data-price="22000" data-basepax="100">Package 6 - ₱22,000 (Venue + Family Room)</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Event Type *</label>
+                    <select id="eventType" onchange="updateEventTypePrice()">
+                        <option value="">Select Event Type</option>
+                        <option value="birthday">Birthday Party</option>
+                        <option value="wedding">Wedding</option>
+                        <option value="corporate">Corporate Event</option>
+                        <option value="anniversary">Anniversary</option>
+                        <option value="seminar">Seminar/Workshop</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="text" id="eventTypeOther" placeholder="Please specify event type" style="display:none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label>Event Date *</label>
+                    <input type="date" id="eventDate" onchange="validateDate()">
+                    <small id="dateError" class="error"></small>
+                </div>
+
+                <div class="form-group">
+                    <label>Event Time *</label>
+                    <input type="time" id="eventTime">
+                </div>
+
+                <div class="form-group">
+                    <label>Venue/Place *</label>
+                    <select id="venueId" onchange="updateVenuePrice()">
+                        <option value="">Select Venue</option>
+                        <option value="main-hall">Main Hall (Ground Floor)</option>
+                        <option value="second-floor">Second Floor</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Number of Guests *</label>
+                    <input type="number" id="numberOfGuests" min="50" value="50" onchange="calculateTotal()">
+                    <small id="minPaxNote">Minimum 50 guests for selected package</small>
+                </div>
+
+                <!-- Food Selection Section (shows for Package 1, 2, 3) -->
+                <div id="foodSelectionSection" class="food-selection-section" style="display: none;">
+                    <h3>🍽️ Food Choices</h3>
+                    
+                    <div class="form-group">
+                        <label>Pork Dish (Choose 1) *</label>
+                        <select id="porkChoice">
+                            <option value="">Select Pork Dish</option>
+                            <option value="Pork Caldereta">Pork Caldereta</option>
+                            <option value="Sweet and Sour Meatballs">Sweet and Sour Meatballs</option>
+                            <option value="Pork Menudo">Pork Menudo</option>
+                            <option value="Pork Afritada">Pork Afritada</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Chicken Dish (Choose 1) *</label>
+                        <select id="chickenChoice">
+                            <option value="">Select Chicken Dish</option>
+                            <option value="Buttered Chicken">Buttered Chicken</option>
+                            <option value="Chicken Caldereta">Chicken Caldereta</option>
+                            <option value="Chicken Afritada">Chicken Afritada</option>
+                            <option value="Chicken Pastel">Chicken Pastel</option>
+                            <option value="Cordon Bleu" id="cordonBleuOption" style="display: none;">Cordon Bleu</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="fishSection" style="display: none;">
+                        <label>Fish Dish (Choose 1) *</label>
+                        <select id="fishChoice">
+                            <option value="">Select Fish Dish</option>
+                            <option value="Fish Fillet">Fish Fillet</option>
+                            <option value="Sweet and Sour Fish">Sweet and Sour Fish</option>
+                            <option value="Fish Steak">Fish Steak</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="beefSection" style="display: none;">
+                        <label>Beef Dish (Choose 1) *</label>
+                        <select id="beefChoice">
+                            <option value="">Select Beef Dish</option>
+                            <option value="Beef Mechado">Beef Mechado</option>
+                            <option value="Beef Caldereta">Beef Caldereta</option>
+                            <option value="Beef Steak">Beef Steak</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Veggies (Choose 1) *</label>
+                        <select id="veggiesChoice">
+                            <option value="">Select Veggies</option>
+                            <option value="Buttered Veggies">Buttered Veggies</option>
+                            <option value="Chopsuey">Chopsuey</option>
+                            <option value="Fresh Lumpia">Fresh Lumpia</option>
+                            <option value="Corn and Carrots" id="cornCarrotsOption" style="display: none;">Corn and Carrots</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pasta (Choose 1) *</label>
+                        <select id="pastaChoice">
+                            <option value="">Select Pasta</option>
+                            <option value="Spaghetti">Spaghetti</option>
+                            <option value="Sotanghon">Sotanghon</option>
+                            <option value="Pancit Canton">Pancit Canton</option>
+                            <option value="Bihon Guisado">Bihon Guisado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dessert (Choose 1) *</label>
+                        <select id="dessertChoice">
+                            <option value="">Select Dessert</option>
+                            <option value="Buko Pandan">Buko Pandan</option>
+                            <option value="Gelatin">Gelatin</option>
+                            <option value="Coffee Jelly">Coffee Jelly</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Drinks (Choose 1) *</label>
+                        <select id="drinksChoice">
+                            <option value="">Select Drinks</option>
+                            <option value="Blue Lemonade">Blue Lemonade</option>
+                            <option value="Four Seasons">Four Seasons</option>
+                            <option value="Cucumber Juice">Cucumber Juice</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Special Request</label>
+                    <textarea id="specialRequest" placeholder="Any special requests or requirements?" rows="3"></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="goToStep(2)">Next: Select Services →</button>
+            </div>
+
+            <!-- Step 2: Add-ons (Venue Packages Only) -->
+            <div id="bookingStep2" class="booking-step">
+                <h2>Step 2: Add-ons</h2>
+                
+                <!-- Add-ons Section for Venue Packages (4-6) -->
+                <div id="addOnsSection" class="addons-section" style="display: none;">
+                    <h3>Available Add-ons</h3>
+                    <p class="addons-note">These add-ons are available for venue-only packages (Package 4-6)</p>
+                    <div class="addons-grid">
+                        <div class="addon-card">
+                            <div class="addon-header">
+                                <h4>🎤 Videoke</h4>
+                                <div class="addon-price">₱500</div>
+                            </div>
+                            <p class="addon-description">Karaoke system with microphones and song library</p>
+                            <button class="btn btn-small" id="btnVideoke" onclick="toggleAddon('videoke', 'Videoke', 500)">
+                                Add
+                            </button>
+                        </div>
+                        <div class="addon-card">
+                            <div class="addon-header">
+                                <h4>🥤 Drinks Dispenser</h4>
+                                <div class="addon-price">₱50</div>
+                            </div>
+                            <p class="addon-description">Beverage dispenser for juice or drinks</p>
+                            <button class="btn btn-small" id="btnDrinksDispenser" onclick="toggleAddon('drinks-dispenser', 'Drinks Dispenser', 50)">
+                                Add
+                            </button>
+                        </div>
+                        <div class="addon-card">
+                            <div class="addon-header">
+                                <h4>🧼 Electric Soap Warmer</h4>
+                                <div class="addon-price">₱200</div>
+                            </div>
+                            <p class="addon-description">Electric soap warmer for chafing dishes</p>
+                            <button class="btn btn-small" id="btnSoapWarmer" onclick="toggleAddon('soap-warmer', 'Electric Soap Warmer', 200)">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message for Food Packages (1-3) -->
+                <div id="noAddOnsMessage" class="no-addons-message">
+                    <div class="info-box">
+                        <p>✅ Your selected package already includes all services!</p>
+                        <p>Food packages (1-3) include venue, food, decoration, and other amenities.</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Selected Add-ons</label>
+                    <div id="selectedAddons" class="selected-addons">
+                        <p class="empty-message">No add-ons selected</p>
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+                    <button class="btn btn-primary" onclick="goToStep(3)">Next: Review & Pay →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Review & Payment -->
+            <div id="bookingStep3" class="booking-step">
+                <h2>Step 3: Review & Checkout</h2>
+
+                <div class="booking-summary">
+                    <div class="summary-section">
+                        <h3>Booking Summary</h3>
+                        <div class="summary-item">
+                            <span>Package:</span>
+                            <span id="summaryPackage">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Event Type:</span>
+                            <span id="summaryEventType">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Date & Time:</span>
+                            <span id="summaryDateTime">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Venue:</span>
+                            <span id="summaryVenue">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Guests:</span>
+                            <span id="summaryGuests">-</span>
+                        </div>
+                    </div>
+
+                    <div class="pricing-section">
+                        <h3>Pricing Breakdown</h3>
+                        <div class="pricing-item">
+                            <span>Package Price:</span>
+                            <span id="packagePriceDisplay">₱0</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Add-ons Total:</span>
+                            <span id="servicesTotalDisplay">₱0</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Subtotal:</span>
+                            <span id="subtotalDisplay">₱0</span>
+                        </div>
+
+                        <div class="pricing-item total">
+                            <span>Total Amount:</span>
+                            <span id="totalAmountDisplay">₱0</span>
+                        </div>
+
+                        <div class="pricing-item">
+                            <span>Down Payment (50%):</span>
+                            <span id="downPaymentDisplay">₱0</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Remaining Balance:</span>
+                            <span id="balanceDisplay">₱0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GCash Payment Section -->
+                <div class="payment-section">
+                    <h3>Payment Method: GCash</h3>
+                    <div class="gcash-container">
+                        <div class="gcash-instructions">
+                            <h4>How to Pay via GCash:</h4>
+                            <ol>
+                                <li>Open your GCash app</li>
+                                <li>Scan the QR code below or send to the number</li>
+                                <li>Enter the down payment amount: <strong id="gcashAmount">₱0</strong></li>
+                                <li>Complete the transaction</li>
+                                <li>Take a screenshot of the receipt</li>
+                                <li>Upload the receipt below</li>
+                            </ol>
+                        </div>
+                        <div class="gcash-qr">
+                            <img src="image/Gcash.jpg" alt="GCash QR Code">
+                            <p class="gcash-name">HutSpot Event Place</p>
+                            <p class="gcash-note">Scan to pay via GCash</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attachment Upload for Payment Proof -->
+                <div class="form-group">
+                    <label>Upload Payment Proof (GCash Receipt) *</label>
+                    <input type="file" id="paymentProof" accept="image/*" required>
+                    <small>📸 Upload a clear screenshot/photo of your GCash payment receipt for verification</small>
+                    <div id="imagePreview" style="margin-top: 10px; display: none;">
+                        <img id="previewImg" src="" alt="Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 2px solid #ddd;">
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+                    <button class="btn btn-success" onclick="submitBooking()">Complete Booking</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Services Section ===== -->
+    <section id="services" class="section">
+        <div class="container">
+            <h2>Our Services</h2>
+            <p>We provide catering, event hosting, and venue rentals tailored to your needs.</p>
+
+            <div class="services-grid">
+                <!-- Event 1 -->
+                <div class="service-card">
+                    <img src="image/wedding.jpg" alt="Wedding Event">
+                    <h3>Weddings</h3>
+                    <p>Celebrate your special day in an elegant and supportive setting.</p>
+                </div>
+
+                <!-- Event 2 -->
+                <div class="service-card">
+                    <img src="image/birthday.jpg" alt="Birthday Event">
+                    <h3>Birthdays</h3>
+                    <p>Make birthdays unforgettable with vibrant décor and catering options.</p>
+                </div>
+
+                <!-- Event 3 -->
+                <div class="service-card">
+                    <img src="image/hall.jpg" alt="Corporate Event">
+                    <h3>Corporate Events</h3>
+                    <p>Host professional meetings or team gatherings with full support.</p>
+                </div>
+
+                <!-- Other Options -->
+                <div class="service-card other">
+                    <img src="image/hall.jpg" alt="Other Events">
+                    <h3>Other Options</h3>
+                    <p>Room rentals, reunions, community events & more. Starting at ₱2,500.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Packages Section ===== -->
+    <section id="packages" class="section">
+        <div class="container">
+            <h2>Event Packages</h2>
+            <p>Choose from our affordable packages for birthdays, weddings, and corporate events.</p>
+
+            <div class="packages-grid">
+                <!-- Package 1 -->
+                <div class="package-card">
+                    <div class="package-image" onclick="openPackageImage('image/package1.jpeg', 'Package 1')">
+                        <img src="image/package1.jpeg" alt="Package 1">
+                        <div class="image-overlay"><span>Click to view</span></div>
+                    </div>
+                    <div class="package-content">
+                        <h3>Package 1</h3>
+                        <p class="price">₱400/head</p>
+                        <p class="min-pax">(50 pax minimum)</p>
+                        <ul class="inclusions">
+                            <li>Food & Venue included</li>
+                            <li>Pork, Chicken, Veggies, Pasta</li>
+                            <li>Dessert, Drinks & Rice</li>
+                            <li>Simple decoration & Videoke</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Package 2 -->
+                <div class="package-card">
+                    <div class="package-image" onclick="openPackageImage('image/package2.jpeg', 'Package 2')">
+                        <img src="image/package2.jpeg" alt="Package 2">
+                        <div class="image-overlay"><span>Click to view</span></div>
+                    </div>
+                    <div class="package-content">
+                        <h3>Package 2</h3>
+                        <p class="price">₱450/head</p>
+                        <p class="min-pax">(50 pax minimum)</p>
+                        <ul class="inclusions">
+                            <li>Food & Venue included</li>
+                            <li>Pork, Chicken, Fish, Veggies, Pasta</li>
+                            <li>Dessert, Drinks & Rice</li>
+                            <li>Simple decoration & Videoke</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Package 3 -->
+                <div class="package-card">
+                    <div class="package-image" onclick="openPackageImage('image/package3.jpeg', 'Package 3')">
+                        <img src="image/package3.jpeg" alt="Package 3">
+                        <div class="image-overlay"><span>Click to view</span></div>
+                    </div>
+                    <div class="package-content">
+                        <h3>Package 3</h3>
+                        <p class="price">₱500/head</p>
+                        <p class="min-pax">(60 pax minimum)</p>
+                        <ul class="inclusions">
+                            <li>Food & Venue included</li>
+                            <li>Pork, Chicken, Beef, Veggies, Pasta</li>
+                            <li>Dessert, Drinks & Rice</li>
+                            <li>Simple decoration & Videoke</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Package 4 - Venue Only -->
+                <div class="package-card">
+                    <div class="package-image" onclick="openPackageImage('image/package1wroom.jpeg', 'Package 4 - Venue Only')">
+                        <img src="image/package1wroom.jpeg" alt="Package 4">
+                        <div class="image-overlay"><span>Click to view</span></div>
+                    </div>
+                    <div class="package-content">
+                        <h3>Package 4</h3>
+                        <p class="price">₱16,000</p>
+                        <p class="min-pax">(Venue Only - 100 pax)</p>
+                        <ul class="inclusions">
+                            <li>100 pax capacity (₱40/head excess)</li>
+                            <li>Decoration, Tables & Chairs</li>
+                            <li>Eating Utensils & Chafing Dish</li>
+                            <li>Sound System & LED Lights</li>
+                            <li>5 Hours venue use</li>
+                        </ul>
+                        <p class="additional-note">Add-ons: Videoke ₱500 | Drinks Dispenser ₱50 | Soap Warmer ₱200</p>
+                    </div>
+                </div>
+
+                <!-- Package 5 - Venue + Single Room -->
+                <div class="package-card">
+                    <div class="package-image" onclick="openPackageImage('image/package2wroom.jpeg', 'Package 5 - Venue + Single Room')">
+                        <img src="image/package2wroom.jpeg" alt="Package 5">
+                        <div class="image-overlay"><span>Click to view</span></div>
+                    </div>
+                    <div class="package-content">
+                        <h3>Package 5</h3>
+                        <p class="price">₱19,000</p>
+                        <p class="min-pax">(Venue + 1 Free Single Room)</p>
+                        <ul class="inclusions">
+                            <li>100 pax capacity (₱40/head excess)</li>
+                            <li>Decoration, Tables & Chairs</li>
+                            <li>Eating Utensils & Chafing Dish</li>
+                            <li>Sound System & LED Lights</li>
+                            <li>5 Hours + 1 Free Single Room</li>
+                        </ul>
+                        <p class="additional-note">Add-ons: Videoke ₱500 | Drinks Dispenser ₱50 | Soap Warmer ₱200</p>
+                    </div>
+                </div>
+
+                <!-- Package 6 - Venue + Family Room -->
+                <div class="package-card">
+                    <div class="package-image" onclick="openPackageImage('image/package9.jpeg', 'Package 6 - Venue + Family Room')">
+                        <img src="image/package9.jpeg" alt="Package 6">
+                        <div class="image-overlay"><span>Click to view</span></div>
+                    </div>
+                    <div class="package-content">
+                        <h3>Package 6</h3>
+                        <p class="price">₱22,000</p>
+                        <p class="min-pax">(Venue + 1 Family Room w/ Sala)</p>
+                        <ul class="inclusions">
+                            <li>100 pax capacity (₱40/head excess)</li>
+                            <li>Decoration, Tables & Chairs</li>
+                            <li>Eating Utensils & Chafing Dish</li>
+                            <li>Sound System & LED Lights</li>
+                            <li>5 Hours + 1 Family Room with Sala</li>
+                        </ul>
+                        <p class="additional-note">Add-ons: Videoke ₱500 | Drinks Dispenser ₱50 | Soap Warmer ₱200</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== About Section ===== -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2>About HutSpot</h2>
+            <p>HutSpot Food House and Event Place is your go-to venue for memorable occasions.</p>
+        </div>
+    </section>
+
+    <!-- ===== Calendar of Events Section ===== -->
+<section id="calendar" class="section calendar-section" style="display: none;">
+    <div class="container">
+        <div class="calendar-wrapper">
+            <div class="calendar-header-nav">
+                <div class="month-title" id="calendarMonthTitle">December 2025</div>
+                <div class="nav-buttons">
+                    <button onclick="previousMonth()">‹</button>
+                    <button onclick="goToToday()">Today</button>
+                    <button onclick="nextMonth()">›</button>
+                </div>
+            </div>
+
+            <div class="calendar-legend">
+                <span><div class="dot booked"></div> Booked (Confirmed)</span>
+                <span><div class="dot reserved"></div> Reserved (Pending)</span>
+            </div>
+
+            <div class="calendar-container">
+                <div class="calendar-grid-days" id="calendarGridDays">
+                    <!-- Generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+    <!-- ===== Contact Section ===== -->
+    <section id="contact" class="section">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <p>We'd love to hear from you! Reach us through any of the options below:</p>
+
+            <!-- Contact Details -->
+            <div class="contact-details">
+                <p><strong>📞 Phone:</strong> 09468505854</p>
+                <p><strong>📍 Address:</strong> Daisy St. Brgy. Tulay na Lupa, Labo, Camarines Norte</p>
+                <p><strong>📧 Email:</strong> hutspot@gmail.com</p>
+            </div>
+
+            <!-- Contact Form -->
+            <form class="contact-form" onsubmit="handleContactForm(event)">
+                <input type="text" placeholder="Your Name" required>
+                <input type="email" placeholder="Your Email" required>
+                <textarea placeholder="Your Message" rows="5" required></textarea>
+                <button type="submit">Send Message</button>
+            </form>
+
+            <!-- Social Links -->
+            <div class="social-links">
+                <a href="#home">Home</a>
+                <a href="#services">Explore</a>
+                <a href="#about">About</a>
+            </div>
+        </div>
+    </section>
+
+<!-- ===== Notification Modal ===== -->
+<div id="notificationModal" class="modal">
+    <div class="modal-overlay">
+        <div class="notification-box">
+            <span class="close" onclick="closeNotificationModal()">&times;</span>
+            <div class="notification-header">
+                <h3 id="notificationTitle">Message</h3>
+            </div>
+            <div class="notification-body">
+                <p id="notificationMessage">Your message here</p>
+            </div>
+            <div class="notification-footer">
+                <button class="btn btn-primary" onclick="closeNotificationModal()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Confirmation Modal ===== -->
+<div id="confirmationModal" class="modal">
+    <div class="modal-overlay">
+        <div class="notification-box">
+            <div class="notification-header">
+                <h3 id="confirmationTitle">Confirm</h3>
+                <span class="close" onclick="closeConfirmationModal()">&times;</span>
+            </div>
+            <div class="notification-body">
+                <p id="confirmationMessage">Are you sure?</p>
+            </div>
+            <div class="notification-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmationOkBtn" onclick="executeConfirmation()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Login Modal Popup -->
+<div id="adminLoginModal" class="modal" style="display: none;">
+    <div class="modal-content modal-login">
+        <span class="close" onclick="closeAdminLoginModal()">&times;</span>
+        <div class="modal-header">
+            <img src="image/hutspot.png" alt="HutSpot Logo" class="modal-logo">
+            <h2>Admin Login</h2>
+            <p>HutSpot Management System</p>
+        </div>
+        <form id="adminLoginFormModal" onsubmit="handleAdminLoginModal(event)">
+            <div class="form-group">
+                <label for="adminUsernameModal">Username</label>
+                <input type="text" id="adminUsernameModal" placeholder="Enter username" required>
+            </div>
+            <div class="form-group password-group">
+                <label for="adminPasswordModal">Password</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="adminPasswordModal" placeholder="Enter password" required>
+                    <button type="button" class="show-password-btn" onclick="togglePasswordVisibility('adminPasswordModal')">👁️</button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+        <div class="modal-footer">
+            <p style="margin: 8px 0 0 0;"><a href="#" class="forgot-password-link" onclick="showForgotPasswordFormModal(event)">Forgot Password?</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotPasswordModal" class="modal" style="display: none;">
+    <div class="modal-content modal-login">
+        <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
+        <div class="modal-header">
+            <img src="image/hutspot.png" alt="HutSpot Logo" class="modal-logo">
+            <h2>Reset Password</h2>
+            <p>Enter your email to reset your password</p>
+        </div>
+        <form id="forgotPasswordFormModal" onsubmit="handleForgotPasswordModal(event)">
+            <div class="form-group">
+                <label for="resetEmailModal">Email Address</label>
+                <input type="email" id="resetEmailModal" placeholder="Enter your email" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Send Reset Link</button>
+        </form>
+        <div class="modal-footer">
+            <p style="margin: 0;"><a href="#" class="forgot-password-link" onclick="backToAdminLoginModal(event)">Back to Login</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== USER AUTHENTICATION MODALS ===== -->
+
+<!-- User Login Modal -->
+<div id="userLoginModal" class="modal auth-modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeUserAuthModal()"></div>
+    <div class="auth-modal-content">
+        <div class="auth-container">
+            <!-- Left Side - Branding -->
+            <div class="auth-brand-side">
+                <div class="auth-brand-content">
+                    <img src="image/hutspot.png" alt="HutSpot Logo" class="auth-logo">
+                    <h2>Welcome Back!</h2>
+                    <p>Login to book your perfect event venue</p>
+                </div>
+            </div>
+
+            <!-- Right Side - Login Form -->
+            <div class="auth-form-side">
+                <span class="close" onclick="closeUserAuthModal()">&times;</span>
+                <div class="auth-form-content">
+                    <h3>Login to Your Account</h3>
+                    <p class="auth-subtitle">Enter your credentials to continue</p>
+
+                    <form id="userLoginForm" onsubmit="handleUserLogin(event)">
+                        <div class="form-group">
+                            <label for="loginEmail">
+                                <i class="icon">📧</i> Email Address
+                            </label>
+                            <input 
+                                type="email" 
+                                id="loginEmail" 
+                                placeholder="your.email@example.com" 
+                                required
+                                autocomplete="email"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">
+                                <i class="icon">🔒</i> Password
+                            </label>
+                            <div class="password-input-wrapper">
+                                <input 
+                                    type="password" 
+                                    id="loginPassword" 
+                                    placeholder="Enter your password" 
+                                    required
+                                    autocomplete="current-password"
+                                >
+                                <button type="button" class="toggle-password" onclick="togglePasswordField('loginPassword')">
+                                    <span id="loginPassword-icon">👁️</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="rememberMe">
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#" class="forgot-link" onclick="showForgotPassword(event)">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block auth-btn">
+                            Login
+                        </button>
+                    </form>
+
+                    <div class="auth-divider">
+                        <span>OR</span>
+                    </div>
+
+                    <p class="auth-switch">
+                        Don't have an account? 
+                        <a href="#" onclick="switchToSignup(event)">Sign up now</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Signup Modal -->
+<div id="userSignupModal" class="modal auth-modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeUserAuthModal()"></div>
+    <div class="auth-modal-content">
+        <div class="auth-container">
+            <!-- Left Side - Branding -->
+            <div class="auth-brand-side">
+                <div class="auth-brand-content">
+                    <img src="image/hutspot.png" alt="HutSpot Logo" class="auth-logo">
+                    <h2>Join HutSpot!</h2>
+                    <p>Create an account to start booking amazing events</p>
+                </div>
+            </div>
+
+            <!-- Right Side - Signup Form -->
+            <div class="auth-form-side">
+                <span class="close" onclick="closeUserAuthModal()">&times;</span>
+                <div class="auth-form-content">
+                    <h3>Create Your Account</h3>
+                    <p class="auth-subtitle">Fill in your details to get started</p>
+
+                    <form id="userSignupForm" onsubmit="handleUserSignup(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="signupFirstName">
+                                    <i class="icon">👤</i> First Name
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="signupFirstName" 
+                                    placeholder="John" 
+                                    required
+                                    autocomplete="given-name"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="signupLastName">
+                                    <i class="icon">👤</i> Last Name
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="signupLastName" 
+                                    placeholder="Doe" 
+                                    required
+                                    autocomplete="family-name"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signupEmail">
+                                <i class="icon">📧</i> Email Address
+                            </label>
+                            <input 
+                                type="email" 
+                                id="signupEmail" 
+                                placeholder="your.email@example.com" 
+                                required
+                                autocomplete="email"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signupMobile">
+                                <i class="icon">📱</i> Mobile Number
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="signupMobile" 
+                                placeholder="09XX XXX XXXX" 
+                                required
+                                pattern="[0-9]{11}"
+                                autocomplete="tel"
+                                maxlength="11"
+                            >
+                            <small class="form-hint">Enter 11-digit mobile number (e.g., 09123456789)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signupPassword">
+                                <i class="icon">🔒</i> Password
+                            </label>
+                            <div class="password-input-wrapper">
+                                <input 
+                                    type="password" 
+                                    id="signupPassword" 
+                                    placeholder="Create a strong password" 
+                                    required
+                                    autocomplete="new-password"
+                                    minlength="6"
+                                >
+                                <button type="button" class="toggle-password" onclick="togglePasswordField('signupPassword')">
+                                    <span id="signupPassword-icon">👁️</span>
+                                </button>
+                            </div>
+                            <small class="form-hint">Minimum 6 characters</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signupConfirmPassword">
+                                <i class="icon">🔒</i> Confirm Password
+                            </label>
+                            <div class="password-input-wrapper">
+                                <input 
+                                    type="password" 
+                                    id="signupConfirmPassword" 
+                                    placeholder="Re-enter your password" 
+                                    required
+                                    autocomplete="new-password"
+                                    minlength="6"
+                                >
+                                <button type="button" class="toggle-password" onclick="togglePasswordField('signupConfirmPassword')">
+                                    <span id="signupConfirmPassword-icon">👁️</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="agreeTerms" required>
+                                <span>I agree to the <a href="#" onclick="event.preventDefault()">Terms & Conditions</a></span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block auth-btn">
+                            Create Account
+                        </button>
+                    </form>
+
+                    <div class="auth-divider">
+                        <span>OR</span>
+                    </div>
+
+                    <p class="auth-switch">
+                        Already have an account? 
+                        <a href="#" onclick="switchToLogin(event)">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Package Image Popup Modal -->
+<div id="packageImageModal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closePackageImageModal()">
+        <div class="package-image-modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="closePackageImageModal()">&times;</span>
+            <h3 id="packageImageTitle">Package Details</h3>
+            <div class="image-container" id="imageContainer" onclick="toggleZoom()">
+                <img id="packageImagePopup" src="" alt="Package Image">
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Footer ===== -->
+<footer class="footer">
+    <div class="footer-container">
+        <p>
+        <a href="https://www.facebook.com/hut.spot.35" target="_blank" class="footer-facebook">
+            facebook.com/hut.spot.35
+        </a>
+        </p>
+        <p class="footer-copy">&copy; HutSport. All Rights Reserved.</p>
+    </div>
+</footer>
